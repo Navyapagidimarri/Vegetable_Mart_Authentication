@@ -1,8 +1,3 @@
-from django.shortcuts import render
-
-# Create your views here.
-from django.shortcuts import render
-
 # Create your views here.
 from django.contrib.auth.models import User
 from django.http import JsonResponse
@@ -29,15 +24,15 @@ def userregister(request):
         if serializer_user.is_valid():
             serializer_user.save()
             
-            return Response(serializer_user.data, status=status.HTTP_201_CREATED)
-        return Response(serializer_user.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer_user.data, status=status.HTTP_201_CREATED)
+    return Response(serializer_user.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class User_login(APIView):
     queryset = Orderuserregister.objects.all()
     serializer_class = User_authserializer
     permission_classes = [AllowAny]
 
-    def post(self, request, args, *kwargs):
+    def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
                                            context={'request': request})
         if serializer.is_valid(raise_exception=True):
@@ -52,11 +47,11 @@ class User_login(APIView):
                 "Email":user.Email,
 
             })
-
+        
 @api_view(['GET', 'POST'])
 def adminregister(request):
     if request.method == 'GET':
-        mnc = adminregister.objects.all()
+        mnc = Adminregister.objects.all()
         serializer = Adminserializer(mnc, many=True)
         return JsonResponse(serializer.data, safe=False)
     if request.method == 'POST':
@@ -64,15 +59,15 @@ def adminregister(request):
         if serializer_user.is_valid():
             serializer_user.save()
             
-            return Response(serializer_user.data, status=status.HTTP_201_CREATED)
-        return Response(serializer_user.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer_user.data, status=status.HTTP_201_CREATED)
+    return Response(serializer_user.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class Admin_login(APIView):
     queryset = Adminregister.objects.all()
     serializer_class = Admin_authserializer
     permission_classes = [AllowAny]
 
-    def post(self, request, args, *kwargs):
+    def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
                                            context={'request': request})
         if serializer.is_valid(raise_exception=True):
