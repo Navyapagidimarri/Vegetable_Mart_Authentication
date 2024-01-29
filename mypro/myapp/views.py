@@ -1,4 +1,5 @@
-# Create your views here.
+import logging
+from django.contrib.auth import get_user_model # Create your views here.
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from rest_framework.views import APIView
@@ -49,7 +50,7 @@ class User_login(APIView):
             })
         
 @api_view(['GET', 'POST'])
-def adminregister(request):
+def  Admin_register(request):
     if request.method == 'GET':
         mnc = Adminregister.objects.all()
         serializer = Adminserializer(mnc, many=True)
@@ -66,12 +67,10 @@ class Admin_login(APIView):
     queryset = Adminregister.objects.all()
     serializer_class = Admin_authserializer
     permission_classes = [AllowAny]
-
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
                                            context={'request': request})
         if serializer.is_valid(raise_exception=True):
-
             input_data = serializer.validated_data
             empid = input_data.get('emp_id')
             password = input_data.get('Password')
@@ -83,25 +82,28 @@ class Admin_login(APIView):
 
             })
         
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def send_otp(request):
-    print(request.data)
-    serializer = SendOTPSerializer(data=request.data)
-    if serializer.is_valid():
-        email = serializer.validated_data['email']
-        otp = str(random.randint(1000, 9999))
-        otp_model, created = OTPModel.objects.get_or_create(email=email)
-        otp_model.otp = otp
-        otp_model.save()
-        subject = 'Your OTP for Password Reset'
-        message = f'Your OTP is: {otp}'
-        from_email = settings.DEFAULT_FROM_EMAIL
-        recipient_list = [email]
-        send_mail(subject, message, from_email, recipient_list)
-        return Response({'detail': 'OTP sent successfully.'})
-    else:
-        return Response(serializer.errors, status=400)
+class Send_otp(APIView):
+    queryset = Adminregister.objects.all()
+    serializer_class = SendOTPSerializer
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        if serializer.is_valid(raise_exception=True):
+            input_data = serializer.validated_data
+            email = input_data.get('email')
+            user = Orderuserregister.objects.get(email=email)
+            if user:
+                otp = str(random.randint(1000, 9999))
+                otp_model, created = OTPModel.objects.get_or_create(email=email)
+                otp_model.otp = otp
+                otp_model.save()
+
+            return Response({
+                "id":user.id,
+                "Name":user.Name,
+                "Username":user.Username,
+
+            })
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -112,7 +114,7 @@ def verify_otp(request):
         user_otp = serializer.validated_data['otp']
         try:
             otp_model = OTPModel.objects.get(email=email)
-        except OTPModel.DoesNotExist:
+        except OTP_Model.DoesNotExist:
             return Response({'detail': 'Invalid email or OTP.'}, status=400)
 
         stored_otp = otp_model.otp
@@ -123,21 +125,18 @@ def verify_otp(request):
     else:
         return Response(serializer.errors, status=400)
 
-@api_view(['POST'])
+@api_view(['PUT'])
 @permission_classes([AllowAny])
 def create_new_password(request):
+    
     serializer = CreateNewPasswordSerializer(data=request.data)
     if serializer.is_valid():
-        email = serializer.validated_data['email']
-        password = serializer.validated_data['password']
-        token = serializer.validated_data.get('token') 
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            return Response({'detail': 'User not found.'}, status=400)
-        user.set_password(password)
-        user.save()  
-        OTPModel.objects.filter(email=email).delete()
+        password=serializer.validated_data['Password']
+        confirmpassword=serializer.validated_data['Confirmpassword']
+        user=Orderuserregister.objects.get(pk=3)
+        user.Password=password
+        user.Confirmpassword=confirmpassword
+        user.save()
 
         return Response({'detail': 'Password reset successfully.'})
     else:
