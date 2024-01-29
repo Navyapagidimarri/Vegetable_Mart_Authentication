@@ -127,13 +127,13 @@ def verify_otp(request):
 
 @api_view(['PUT'])
 @permission_classes([AllowAny])
-def create_new_password(request):
+def create_new_password(request,id):
     
     serializer = CreateNewPasswordSerializer(data=request.data)
     if serializer.is_valid():
         password=serializer.validated_data['Password']
         confirmpassword=serializer.validated_data['Confirmpassword']
-        user=Orderuserregister.objects.get(pk=3)
+        user=Orderuserregister.objects.get(pk=id)
         user.Password=password
         user.Confirmpassword=confirmpassword
         user.save()
