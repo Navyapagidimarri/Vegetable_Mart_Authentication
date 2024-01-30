@@ -11,4 +11,5 @@ urlpatterns = [
     path('send-otp/', views. Send_otp.as_view()),
     path('verify-otp/', views.verify_otp),
     path('create-new-password/<int:id>/', views.create_new_password),
+    path('deleteuser/<int:id>',views.delete_user_account)
 ]
