@@ -13,6 +13,9 @@ from django.conf import settings
 from rest_framework.response import Response
 from .models import Orderuserregister,Adminregister,OTPModel
 from .serializers import Userserializer,Adminserializer,User_authserializer,Admin_authserializer,SendOTPSerializer,VerifyOTPSerializer,CreateNewPasswordSerializer
+from django.core.exceptions import ObjectDoesNotExist
+
+
 
 @api_view(['GET', 'POST'])
 def userregister(request):
@@ -141,3 +144,12 @@ def create_new_password(request,id):
         return Response({'detail': 'Password reset successfully.'})
     else:
         return Response(serializer.errors, status=400)
+@api_view(['DELETE'])
+def delete_user_account(request, id):
+    try:
+        user = Orderuserregister.objects.get(pk=id)
+        user.delete()
+        return Response({'detail': 'User account deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+    except ObjectDoesNotExist:
+        return Response({'detail': 'User Not found'}, status=status.HTTP_404_NOT_FOUND)
+ 
